@@ -1,4 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
+import { playLevelUpSound, playSuccessSound, playErrorSound } from "../services/sound";
+
 
 export const AppContext = createContext();
 
@@ -8,24 +10,56 @@ export const AppProvider = ({ children }) => {
     return localStorage.getItem("pathfinder_gemini_key") || "";
   });
 
+  // Leveling helper thresholds
+  const getLevelFromExp = (exp) => {
+    if (exp >= 2100) return 6;
+    if (exp >= 1500) return 5;
+    if (exp >= 1000) return 4;
+    if (exp >= 600) return 3;
+    if (exp >= 300) return 2;
+    return 1;
+  };
+
+  const getRankFromLevel = (lvl) => {
+    switch (lvl) {
+      case 6: return "Executive Partner";
+      case 5: return "Lead Principal";
+      case 4: return "Senior Specialist";
+      case 3: return "Associate Consultant";
+      case 2: return "Tech Analyst";
+      default: return "Junior Intern";
+    }
+  };
+
   // Load progress stats from localStorage
   const [progress, setProgress] = useState(() => {
     const saved = localStorage.getItem("pathfinder_progress");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          completedMilestones: [],
-          interviewScores: {}, // { 'software-engineer': [85, 92] }
-          completedRpgs: [], // ['software-engineer']
-          expPoints: 0,
-          rank: "Explorer",
-          scoreHistory: [
-            { date: "Jun 18", score: 65, type: "Interview" },
-            { date: "Jun 19", score: 72, type: "Resume" },
-            { date: "Jun 20", score: 78, type: "Interview" }
-          ]
-        };
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Ensure level and rank match updated gamification formula
+      const lvl = getLevelFromExp(parsed.expPoints || 0);
+      return {
+        ...parsed,
+        level: lvl,
+        rank: getRankFromLevel(lvl)
+      };
+    }
+    return {
+      completedMilestones: [],
+      interviewScores: {}, 
+      completedRpgs: [], 
+      expPoints: 0,
+      level: 1,
+      rank: "Junior Intern",
+      scoreHistory: [
+        { date: "Jun 18", score: 65, type: "Interview" }
+      ]
+    };
   });
+
+  // State to trigger custom Level Up alert banners in UI
+  const [showLevelUpAlert, setShowLevelUpAlert] = useState(false);
+  const [lastLeveledUpTo, setLastLeveledUpTo] = useState(1);
 
   // Persist API key
   const setApiKey = (key) => {
@@ -38,6 +72,33 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem("pathfinder_progress", JSON.stringify(progress));
   }, [progress]);
 
+  // Unified XP addition logic with level-up trigger checks
+  const addExperiencePoints = (pts) => {
+    setProgress((prev) => {
+      const newExp = Math.max(0, prev.expPoints + pts);
+      const prevLvl = prev.level;
+      const nextLvl = getLevelFromExp(newExp);
+      const nextRank = getRankFromLevel(nextLvl);
+
+      if (nextLvl > prevLvl) {
+        // Level up occurred! Play sound and flag alerts
+        playLevelUpSound();
+        setLastLeveledUpTo(nextLvl);
+        setShowLevelUpAlert(true);
+        window.dispatchEvent(new CustomEvent("cosmic-explosion", {
+          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        }));
+      }
+
+      return {
+        ...prev,
+        expPoints: newExp,
+        level: nextLvl,
+        rank: nextRank
+      };
+    });
+  };
+
   // Complete/toggle a skill milestone
   const toggleMilestone = (milestoneId) => {
     setProgress((prev) => {
@@ -47,13 +108,32 @@ export const AppProvider = ({ children }) => {
         : [...prev.completedMilestones, milestoneId];
       
       const expChange = isCompleted ? -50 : 50;
-      const newExp = Math.max(0, prev.expPoints + expChange);
       
+      // Compute updates
+      const newExp = Math.max(0, prev.expPoints + expChange);
+      const nextLvl = getLevelFromExp(newExp);
+      
+      if (nextLvl > prev.level && expChange > 0) {
+        playLevelUpSound();
+        setLastLeveledUpTo(nextLvl);
+        setShowLevelUpAlert(true);
+        window.dispatchEvent(new CustomEvent("cosmic-explosion", {
+          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        }));
+      } else {
+        if (isCompleted) {
+          playErrorSound();
+        } else {
+          playSuccessSound();
+        }
+      }
+
       return {
         ...prev,
         completedMilestones: newMilestones,
         expPoints: newExp,
-        rank: getRankFromExp(newExp)
+        level: nextLvl,
+        rank: getRankFromLevel(nextLvl)
       };
     });
   };
@@ -64,8 +144,18 @@ export const AppProvider = ({ children }) => {
       const roleScores = prev.interviewScores[roleId] || [];
       const newScores = [...roleScores, score];
       
-      const newExp = prev.expPoints + 150; // award experience
+      const newExp = prev.expPoints + 150; // award 150 XP
+      const nextLvl = getLevelFromExp(newExp);
       
+      if (nextLvl > prev.level) {
+        playLevelUpSound();
+        setLastLeveledUpTo(nextLvl);
+        setShowLevelUpAlert(true);
+        window.dispatchEvent(new CustomEvent("cosmic-explosion", {
+          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        }));
+      }
+
       const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
       const newHistoryItem = { date: today, score, type: "Interview" };
       
@@ -76,8 +166,9 @@ export const AppProvider = ({ children }) => {
           [roleId]: newScores
         },
         expPoints: newExp,
-        rank: getRankFromExp(newExp),
-        scoreHistory: [...prev.scoreHistory, newHistoryItem].slice(-6) // keep last 6 scores
+        level: nextLvl,
+        rank: getRankFromLevel(nextLvl),
+        scoreHistory: [...prev.scoreHistory, newHistoryItem].slice(-6)
       };
     });
   };
@@ -87,23 +178,41 @@ export const AppProvider = ({ children }) => {
     setProgress((prev) => {
       if (prev.completedRpgs.includes(roleId)) return prev;
       
-      const newExp = prev.expPoints + 200; // large experience award
+      const newExp = prev.expPoints + 200; // award 200 XP
+      const nextLvl = getLevelFromExp(newExp);
       
+      if (nextLvl > prev.level) {
+        playLevelUpSound();
+        setLastLeveledUpTo(nextLvl);
+        setShowLevelUpAlert(true);
+        window.dispatchEvent(new CustomEvent("cosmic-explosion", {
+          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        }));
+      }
+
       return {
         ...prev,
         completedRpgs: [...prev.completedRpgs, roleId],
         expPoints: newExp,
-        rank: getRankFromExp(newExp)
+        level: nextLvl,
+        rank: getRankFromLevel(nextLvl)
       };
     });
   };
 
-  // Leveling engine
-  const getRankFromExp = (exp) => {
-    if (exp >= 1000) return "Master Coach";
-    if (exp >= 600) return "Professional Career Specialist";
-    if (exp >= 300) return "Junior PathFinder";
-    return "Explorer";
+  // Reset progress (for debug and replaying)
+  const resetProgress = () => {
+    const fresh = {
+      completedMilestones: [],
+      interviewScores: {},
+      completedRpgs: [],
+      expPoints: 0,
+      level: 1,
+      rank: "Junior Intern",
+      scoreHistory: []
+    };
+    setProgress(fresh);
+    localStorage.removeItem("pathfinder_progress");
   };
 
   return (
@@ -114,7 +223,12 @@ export const AppProvider = ({ children }) => {
         progress,
         toggleMilestone,
         saveInterviewScore,
-        saveRpgCompletion
+        saveRpgCompletion,
+        addExperiencePoints,
+        resetProgress,
+        showLevelUpAlert,
+        setShowLevelUpAlert,
+        lastLeveledUpTo
       }}
     >
       {children}

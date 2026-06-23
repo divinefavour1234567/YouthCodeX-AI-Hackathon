@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { AppContext } from "../context/AppContext";
 import { Settings, CheckCircle2, AlertTriangle } from "lucide-react";
+import { playHoverSound } from "../services/sound";
 
 export default function Header({ currentView, onOpenSettings }) {
   const { apiKey } = useContext(AppContext);
@@ -50,7 +51,11 @@ export default function Header({ currentView, onOpenSettings }) {
       <div className="header-actions">
         <button 
           className={`api-status-pill ${isKeyActive ? "active" : "demo"}`}
-          onClick={onOpenSettings}
+          onClick={() => {
+            playHoverSound();
+            onOpenSettings();
+          }}
+          onMouseEnter={playHoverSound}
           title={isKeyActive ? "Gemini API key configured." : "Using pre-configured high-fidelity simulation. Click to configure API Key."}
         >
           {isKeyActive ? (
@@ -68,7 +73,11 @@ export default function Header({ currentView, onOpenSettings }) {
 
         <button 
           className="btn-icon-settings"
-          onClick={onOpenSettings}
+          onClick={() => {
+            playHoverSound();
+            onOpenSettings();
+          }}
+          onMouseEnter={playHoverSound}
           aria-label="Settings"
         >
           <Settings size={20} />

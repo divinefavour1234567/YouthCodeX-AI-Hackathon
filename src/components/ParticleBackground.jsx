@@ -83,6 +83,64 @@ export default function ParticleBackground() {
       particleArray.push(new Particle());
     }
 
+    // Explosion Particle class for cosmic events
+    class ExplosionParticle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 3.5 + 1.5;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 1.5;
+        this.speedX = Math.cos(angle) * speed;
+        this.speedY = Math.sin(angle) * speed;
+        this.life = 1.0;
+        this.decay = Math.random() * 0.02 + 0.015;
+        
+        // Randomly select neon theme colors
+        const colors = [
+          "rgba(0, 217, 255, ",  // Cyan
+          "rgba(157, 78, 221, ", // Electric Purple
+          "rgba(57, 255, 20, ",  // Lime Green
+          "rgba(255, 0, 110, "   // Hot Pink
+        ];
+        this.colorPrefix = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.speedX *= 0.98; // simulated drag
+        this.speedY *= 0.98;
+        this.y += 0.04;      // floating fall drift
+        this.life -= this.decay;
+      }
+
+      draw() {
+        if (this.life <= 0) return;
+        ctx.save();
+        ctx.fillStyle = `${this.colorPrefix}${this.life})`;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = `${this.colorPrefix}1)`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    let explosionParticles = [];
+
+    const handleExplosion = (e) => {
+      const x = e.detail && e.detail.x ? e.detail.x : window.innerWidth / 2;
+      const y = e.detail && e.detail.y ? e.detail.y : window.innerHeight / 2;
+      const count = 120;
+      for (let i = 0; i < count; i++) {
+        explosionParticles.push(new ExplosionParticle(x, y));
+      }
+    };
+
+    window.addEventListener("cosmic-explosion", handleExplosion);
+
     // Connect particles with lines
     const connect = () => {
       for (let a = 0; a < particleArray.length; a++) {
@@ -109,11 +167,21 @@ export default function ParticleBackground() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Update & Draw particles
+      // Update & Draw base particles
       particleArray.forEach((particle) => {
         particle.update();
         particle.draw();
       });
+
+      // Update & Draw explosion particles
+      for (let i = explosionParticles.length - 1; i >= 0; i--) {
+        const p = explosionParticles[i];
+        p.update();
+        p.draw();
+        if (p.life <= 0) {
+          explosionParticles.splice(i, 1);
+        }
+      }
 
       connect();
       animationFrameId = requestAnimationFrame(animate);
@@ -126,6 +194,7 @@ export default function ParticleBackground() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseleave", handleMouseLeave);
       window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("cosmic-explosion", handleExplosion);
     };
   }, []);
 

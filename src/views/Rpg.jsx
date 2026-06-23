@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Award
 } from "lucide-react";
+import { playHoverSound, playErrorSound } from "../services/sound";
 
 // Interactive Typewriter Text Effect for retro-modern RPG narratives
 const TypewriterText = ({ text, speed = 12, onComplete }) => {
@@ -32,7 +33,115 @@ const TypewriterText = ({ text, speed = 12, onComplete }) => {
 };
 
 export default function Rpg() {
-  const { saveRpgCompletion } = useContext(AppContext);
+  const { progress, saveRpgCompletion } = useContext(AppContext);
+  const isLocked = progress.level < 5;
+
+  useEffect(() => {
+    if (isLocked) {
+      playErrorSound();
+    }
+  }, [isLocked]);
+
+  if (isLocked) {
+    return (
+      <div className="lockscreen-overlay glass-card">
+        <div className="lock-content">
+          <div className="lock-icon-wrapper pulse-red">🔒</div>
+          <h3>System Restricted: Level 5 Required</h3>
+          <p>Accessing the Day-in-the-Life RPG scenarios requires the rank of <strong>Lead Principal</strong>.</p>
+          
+          <div className="progress-container">
+            <div className="progress-text">
+              <span>Your XP: {progress.expPoints}</span>
+              <span>Required: 1,500 XP</span>
+            </div>
+            <div className="progress-bar-bg">
+              <div className="progress-bar-fill" style={{ width: `${Math.min(100, (progress.expPoints / 1500) * 100)}%` }}></div>
+            </div>
+          </div>
+          
+          <p className="hint text-muted">Complete Milestones or practice Mock Interviews to gain XP!</p>
+        </div>
+        <style>{`
+          .lockscreen-overlay {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 480px;
+            margin: 2rem auto;
+            max-width: 600px;
+            text-align: center;
+            padding: 3rem !important;
+            background: rgba(10, 14, 39, 0.8) !important;
+            border-color: rgba(255, 0, 110, 0.25) !important;
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.1);
+          }
+          .lock-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            width: 100%;
+          }
+          .lock-icon-wrapper {
+            font-size: 3rem;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 0, 110, 0.1);
+            border: 2px solid var(--accent-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px var(--accent-pink);
+          }
+          .pulse-red {
+            animation: pulseRed 2s infinite;
+          }
+          @keyframes pulseRed {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 0, 110, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 0, 110, 0.8); }
+          }
+          .lock-content h3 {
+            font-size: 1.6rem;
+            color: var(--text-primary);
+          }
+          .lock-content p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            max-width: 400px;
+          }
+          .progress-container {
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+          .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+          }
+          .progress-bar-bg {
+            height: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 99px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+          }
+          .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-pink);
+            border-radius: 99px;
+            box-shadow: 0 0 8px var(--accent-pink);
+          }
+        `}</style>
+      </div>
+    );
+  }
   
   // UI stages: 'setup' | 'story' | 'finish'
   const [stage, setStage] = useState("setup");
@@ -102,7 +211,10 @@ export default function Rpg() {
                 <button
                   key={roleKey}
                   className={`role-select-card glass-card ${isSelected ? "selected" : ""}`}
-                  onClick={() => setSelectedRole(roleKey)}
+                  onClick={() => {
+                    playHoverSound();
+                    setSelectedRole(roleKey);
+                  }}
                 >
                   <span className="role-icon">
                     {roleKey === "software-engineer" ? "💻" : "🎨"}
@@ -114,7 +226,7 @@ export default function Rpg() {
             })}
           </div>
 
-          <button className="btn btn-primary btn-start-game" onClick={startGame}>
+          <button className="btn btn-primary btn-start-game" onClick={() => { playHoverSound(); startGame(); }}>
             Enter Simulator
           </button>
         </div>
@@ -191,7 +303,10 @@ export default function Rpg() {
                     <button
                       key={i}
                       className="choice-btn glass-card"
-                      onClick={() => makeChoice(choice)}
+                      onClick={() => {
+                        playHoverSound();
+                        makeChoice(choice);
+                      }}
                     >
                       <span className="choice-number">{i + 1}</span>
                       <p className="choice-text">{choice.text}</p>
@@ -229,7 +344,7 @@ export default function Rpg() {
                     })}
                   </div>
 
-                  <button className="btn btn-cyan btn-next-stage" onClick={advanceStory}>
+                  <button className="btn btn-cyan btn-next-stage" onClick={() => { playHoverSound(); advanceStory(); }}>
                     <span>Continue Scenario</span>
                     <ArrowRight size={16} />
                   </button>

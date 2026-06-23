@@ -225,3 +225,160 @@ export const generateOutreachDrafts = async (apiKey, resumeText, jobDescription)
     throw new Error("Failed to write outreach drafts. Check your API Key.");
   }
 };
+
+/**
+ * Simulates one turn of a salary negotiation with a virtual hiring manager using real market benchmarks.
+ */
+export const negotiateSalaryResponse = async (apiKey, role, difficulty, lastOffer, userCounterOffer, userMessage, round, patience) => {
+  const BENCHMARKS = {
+    "Junior Software Engineer": {
+      entry: { min: 60000, max: 90000, minNgn: 4000000, maxNgn: 7000000, keywords: ["react", "javascript", "git", "api"] },
+      mid: { min: 100000, max: 140000, minNgn: 8000000, maxNgn: 15000000, keywords: ["system design", "databases", "testing", "ci/cd"] },
+      executive: { min: 160000, max: 250000, minNgn: 18000000, maxNgn: 30000000, keywords: ["architecture", "scale", "security", "cloud", "team lead"] }
+    },
+    "Associate AI Engineer": {
+      entry: { min: 70000, max: 105000, minNgn: 5000000, maxNgn: 9000000, keywords: ["python", "numpy", "pandas", "data science"] },
+      mid: { min: 120000, max: 180000, minNgn: 10000000, maxNgn: 18000000, keywords: ["pytorch", "tensorflow", "nlp", "transformers", "metrics"] },
+      executive: { min: 200000, max: 320000, minNgn: 22000000, maxNgn: 40000000, keywords: ["llm", "fine-tuning", "mlops", "deployment", "pipeline", "strategy"] }
+    },
+    "Junior UX/UI Designer": {
+      entry: { min: 50000, max: 75000, minNgn: 3000000, maxNgn: 6000000, keywords: ["figma", "wireframe", "typography", "colors"] },
+      mid: { min: 85000, max: 120000, minNgn: 7000000, maxNgn: 12000000, keywords: ["ux research", "user flow", "prototyping", "design system"] },
+      executive: { min: 140000, max: 210000, minNgn: 15000000, maxNgn: 25000000, keywords: ["strategy", "leadership", "analytics", "usability test", "tokens"] }
+    }
+  };
+
+  // Safe fallback lookup
+  const roleKey = BENCHMARKS[role] ? role : Object.keys(BENCHMARKS).find(k => k.toLowerCase().includes(role.toLowerCase())) || "Junior Software Engineer";
+  const bounds = BENCHMARKS[roleKey][difficulty] || BENCHMARKS[roleKey]["mid"];
+
+  const currency = Number(lastOffer) > 1000000 ? "NGN" : "USD";
+  const minLimit = currency === "NGN" ? bounds.minNgn : bounds.min;
+  const maxLimit = currency === "NGN" ? bounds.maxNgn : bounds.max;
+  const requiredKeywords = bounds.keywords;
+
+  if (!isKeyValid(apiKey)) {
+    await new Promise((r) => setTimeout(r, 1000));
+    
+    const counter = Number(userCounterOffer) || lastOffer;
+    const msg = (userMessage || "").toLowerCase();
+    
+    // 1. Minimum pitch length validator
+    if (msg.length < 15) {
+      return {
+        bossResponse: `I cannot evaluate this offer without a professional justification. Please explain your key skills and achievements before proposing adjustments.`,
+        counterOffer: lastOffer,
+        patienceDelta: -25,
+        verdict: patience - 25 <= 0 ? "rejected_walkaway" : "continue"
+      };
+    }
+
+    // 2. Keyword matching count
+    const matchedCount = requiredKeywords.filter(kw => msg.includes(kw)).length;
+    
+    let bossResponse = "";
+    let counterOffer = lastOffer;
+    let patienceDelta = -12;
+    let verdict = "continue";
+
+    // 3. Logic based on counter pricing relative to benchmarks
+    if (counter <= lastOffer) {
+      bossResponse = "Excellent. I'm glad we are on the same page. Let's finalize the paperwork!";
+      counterOffer = counter;
+      patienceDelta = +10;
+      verdict = "accepted";
+    } else if (counter > maxLimit) {
+      // Trying to exceed the market budget cap
+      if (matchedCount < 2) {
+        bossResponse = `That is far beyond our target budget for a ${difficulty}-level position. You haven't referenced critical requirements like ${requiredKeywords.slice(0,2).join(" or ")} to justify this rate.`;
+        patienceDelta = -35;
+        counterOffer = Math.round(lastOffer * 1.02);
+      } else {
+        bossResponse = `While you make a good point mentioning ${requiredKeywords.filter(kw => msg.includes(kw)).join(" and ")}, your demand exceeds our hard ceiling. I can meet you at our maximum budget boundary of ${currency === "NGN" ? "₦" : "$"}${maxLimit.toLocaleString()}.`;
+        counterOffer = maxLimit;
+        patienceDelta = -15;
+      }
+    } else {
+      // Proposing counter within standard bounds
+      if (matchedCount === 0) {
+        bossResponse = `We have budgeted this role carefully. Your requested salary of ${currency === "NGN" ? "₦" : "$"}${counter.toLocaleString()} is possible, but you haven't mentioned core skills like ${requiredKeywords.join(", ")} to support it. Let's stick closer to our initial offer.`;
+        patienceDelta = -20;
+        counterOffer = Math.round(lastOffer * 1.03);
+      } else {
+        // Successful compromise
+        const matchRatio = matchedCount / requiredKeywords.length;
+        const increaseRange = counter - lastOffer;
+        const offerBonus = Math.round(increaseRange * (0.3 + matchRatio * 0.5));
+        
+        counterOffer = lastOffer + offerBonus;
+        patienceDelta = -5;
+        
+        if (Math.abs(counter - counterOffer) < (currency === "NGN" ? 150000 : 2000)) {
+          bossResponse = `That is a reasonable proposal given your credentials in ${requiredKeywords.filter(kw => msg.includes(kw)).join(", ")}. Let's lock it in at ${currency === "NGN" ? "₦" : "$"}${counter.toLocaleString()}!`;
+          counterOffer = counter;
+          patienceDelta = +5;
+          verdict = "accepted";
+        } else {
+          bossResponse = `I see your point regarding your experience in ${requiredKeywords.filter(kw => msg.includes(kw)).join(", ")}. Let's compromise at ${currency === "NGN" ? "₦" : "$"}${counterOffer.toLocaleString()}. How does that sound?`;
+        }
+      }
+    }
+
+    if (round >= 5 && verdict === "continue") {
+      verdict = "rejected_walkaway";
+      bossResponse = `We have gone back and forth but unfortunately, we cannot align. I must rescind our offer. Good luck with your search.`;
+    }
+
+    return {
+      bossResponse,
+      counterOffer,
+      patienceDelta,
+      verdict
+    };
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const prompt = `
+      You are acting as a strict but reasonable Hiring Manager named "Alex" negotiating salary for a ${roleKey} position.
+      Current parameters:
+      - Job Difficulty / Seniority: ${difficulty}
+      - Local Market Budget Bounds (in ${currency}): Min: ${minLimit}, Max: ${maxLimit}.
+      - Expected Skill Keywords for this level: ${requiredKeywords.join(", ")}.
+      
+      Candidates proposals:
+      - Initial / Last Offer: ${lastOffer}
+      - Candidate's Counter-Offer: ${userCounterOffer}
+      - Candidate's Argument: "${userMessage}"
+      - Current Negotiation Round: ${round} of 5
+      - Boss's current Patience Level: ${patience}% (0% means you rescind the offer immediately).
+      
+      Verify candidate's pitch:
+      - If candidate demands a salary above the Median (${Math.round((minLimit+maxLimit)/2)}) or above Max budget, they MUST mention at least 2 of the expected skill keywords.
+      - If their argument is generic (less than 15 chars, empty metrics, begging, or asking without skill justifications), reduce patience by 25-35%, make a minimal counter-offer, and express disappointment in their unskillful/incompetent approach.
+      - If they do match expected skills, meet them halfway (increase offer) and reduce patience slightly (-5%).
+      - If they match skills and counter-offer is very close, accept it (verdict = "accepted").
+      - If round >= 5 or patience hits 0%, set verdict to "rejected_walkaway" and rescind the offer.
+      
+      Respond strictly in JSON format with these exact keys:
+      {
+        "bossResponse": "your spoken response as the hiring manager criticizing or accepting their terms based on benchmarks",
+        "counterOffer": (the new counter-offer salary you propose as a number),
+        "patienceDelta": (a positive or negative number showing change in patience, e.g. -15),
+        "verdict": "continue" | "accepted" | "rejected_walkaway"
+      }
+      Do not include any markdown formatting, code blocks, or extra text. Output ONLY raw JSON.
+    `;
+    
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+    const cleanedText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    return JSON.parse(cleanedText);
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    throw new Error("Failed to simulate salary negotiation. Check your API Key.");
+  }
+};
+

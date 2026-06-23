@@ -9,6 +9,7 @@ import {
   Trophy, 
   Award 
 } from "lucide-react";
+import { playHoverSound } from "../services/sound";
 
 export default function Sidebar({ currentView, setView }) {
   const { progress } = useContext(AppContext);
@@ -43,7 +44,11 @@ export default function Sidebar({ currentView, setView }) {
             <button
               key={item.id}
               className={`menu-item ${isActive ? "active" : ""}`}
-              onClick={() => setView(item.id)}
+              onClick={() => {
+                playHoverSound();
+                setView(item.id);
+              }}
+              onMouseEnter={playHoverSound}
             >
               <Icon size={20} className="menu-icon" />
               <span>{item.label}</span>

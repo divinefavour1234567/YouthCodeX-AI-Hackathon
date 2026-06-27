@@ -17,7 +17,6 @@ export default function Sidebar({ currentView, setView }) {
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Compass },
-    { id: "advisor", label: "AI Career Coach", icon: Bot },
     { id: "roadmap", label: "Career Explorer", icon: Briefcase },
     { id: "interview", label: "Interview Sandbox", icon: MessageSquare },
     { id: "resume", label: "Resume Critique", icon: FileText },

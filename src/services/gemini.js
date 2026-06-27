@@ -382,3 +382,185 @@ export const negotiateSalaryResponse = async (apiKey, role, difficulty, lastOffe
   }
 };
 
+/**
+ * Simulates a conversation turn with the AI Career Advisor.
+ */
+export const chatWithCareerAdvisor = async (apiKey, userProfile, message, history = []) => {
+  if (!isKeyValid(apiKey)) {
+    await new Promise((r) => setTimeout(r, 1000));
+    
+    const msg = message.toLowerCase();
+    let reply = "";
+    
+    if (history.length === 0) {
+      reply = `Hello ${userProfile.name || "friend"}! Welcome to PathFinder AI. I see you are based in ${userProfile.location || "Nigeria"} and interested in transitioning from '${userProfile.currentField}' into '${userProfile.targetRoles}'. To get started, what specific sub-skills or languages (e.g., Python, Figma, React) do you want to learn first?`;
+    } else if (msg.includes("python") || msg.includes("react") || msg.includes("figma") || msg.includes("javascript")) {
+      reply = `Great choice! Focusing on skills like those aligns well with hiring targets at top African firms like Paystack and Moniepoint. Do you have any previous project experience with these, or are you starting completely from scratch?`;
+    } else if (msg.includes("scratch") || msg.includes("no") || msg.includes("beginner")) {
+      reply = `Starting from scratch is perfect. We can map out a modular learning path. How many hours a week can you realistically dedicate to studying and building side projects?`;
+    } else {
+      reply = `That is very helpful context. I have gathered enough details to structure a solid timeline. Feel free to ask any other questions, or click 'Generate Career Roadmap' below to compile your customized 90-day learning path!`;
+    }
+    
+    return reply;
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const prompt = `
+      You are PathFinder AI, an expert career advisor specializing in the African and Nigerian tech ecosystems.
+      
+      User Profile:
+      - Name: ${userProfile.name}
+      - Current Field/Skills: ${userProfile.currentField}
+      - Location: ${userProfile.location}
+      - Target Interests/Roles: ${userProfile.targetRoles}
+      
+      Your guidelines:
+      1. Help the user clarify their career goals, learn relevant tech stacks, and prepare for local roles.
+      2. Suggest concrete next steps and reference real African/Nigerian firms like Paystack, Flutterwave, Moniepoint, MTN, PiggyVest, or local banks.
+      3. Ask 1-2 clarifying questions per response to keep the conversation engaging.
+      4. Keep your responses encouraging, brief, and under 3 paragraphs (less than 150 words).
+      
+      Conversation History:
+      ${history.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
+      USER: ${message}
+      ASSISTANT:
+    `;
+    
+    const result = await model.generateContent(prompt);
+    return result.response.text().trim();
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    throw new Error("Failed to communicate with Career Coach. Verify your API Key.");
+  }
+};
+
+/**
+ * Generates a structured 90-day learning roadmap from conversation history.
+ */
+export const generateAdvisorRoadmap = async (apiKey, userProfile, history = []) => {
+  if (!isKeyValid(apiKey)) {
+    await new Promise((r) => setTimeout(r, 1500));
+    
+    // High-fidelity simulated roadmap customized with profile inputs
+    return {
+      roadmap_90day: {
+        phase_1: {
+          duration: "Days 1-30",
+          focus: "Core Fundamentals & Setup",
+          actions: [
+            `Acquire foundational skills in ${userProfile.currentField || "HTML/CSS & JavaScript"}`,
+            "Create a GitHub profile and configure a clean README repository",
+            "Build 3 responsive landing pages and push them live to Netlify/Vercel"
+          ],
+          resources: ["freeCodeCamp Web Responsive Course", "MDN Web Docs"]
+        },
+        phase_2: {
+          duration: "Days 31-60",
+          focus: "Advanced Frameworks & APIs",
+          actions: [
+            `Transition to frameworks matching ${userProfile.targetRoles || "Frontend/AI Engineer"} requirements`,
+            "Build an API-driven dashboard app consuming public JSON REST endpoints",
+            "Read Paystack developer sandbox documentation for payment integration practice"
+          ],
+          resources: ["React Official Documentation", "JavaScript Info", "Paystack Dev API Docs"]
+        },
+        phase_3: {
+          duration: "Days 61-90",
+          focus: "ATS Optimization & Interviews",
+          actions: [
+            "Critique your draft resume in Pathfinder's ATS scorecard tracker",
+            "Conduct 3 mock voice interviews to practice behavioral and technical concepts",
+            "Apply to junior internship positions at Moniepoint, Flutterwave, or local tech startups"
+          ],
+          resources: ["Pathfinder Mock Interview Sandbox", "LinkedIn Jobs Board"]
+        }
+      },
+      target_roles: [
+        {
+          title: `Junior ${userProfile.targetRoles || "Software Engineer"}`,
+          companies_in_nigeria: ["Paystack", "Flutterwave", "Moniepoint", "Kuda Bank"],
+          salary_range_ngn: "₦350,000 - ₦600,000 / month",
+          key_requirements": ["JavaScript/Python", "Git", "API Integrations", "Figma"],
+          years_to_reach: "3 months"
+        }
+      ],
+      skill_priorities: ["Foundational Code Logic", "Git Version Control", "REST APIs", "Clean UI Frameworks"],
+      salary_expectations: {
+        entry_level: "₦4.2M - ₦7.2M / year",
+        mid_level: "₦8.4M - ₦15M / year",
+        senior_level: "₦18M - ₦30M / year"
+      }
+    };
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const prompt = `
+      Analyze this career conversation history between a candidate and their career coach, and compile a structured 90-day learning roadmap.
+      
+      User Profile:
+      - Current Field/Skills: ${userProfile.currentField}
+      - Location: ${userProfile.location}
+      - Target Interests/Roles: ${userProfile.targetRoles}
+      
+      Conversation History:
+      ${history.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
+      
+      Generate a JSON roadmap in this EXACT format:
+      {
+        "roadmap_90day": {
+          "phase_1": {
+            "duration": "Days 1-30",
+            "focus": "Learning Focus",
+            "actions": ["Action 1", "Action 2", "Action 3"],
+            "resources": ["Resource 1", "Resource 2"]
+          },
+          "phase_2": {
+            "duration": "Days 31-60",
+            "focus": "Learning Focus",
+            "actions": ["Action 1", "Action 2", "Action 3"],
+            "resources": ["Resource 1", "Resource 2"]
+          },
+          "phase_3": {
+            "duration": "Days 61-90",
+            "focus": "Learning Focus",
+            "actions": ["Action 1", "Action 2", "Action 3"],
+            "resources": ["Resource 1", "Resource 2"]
+          }
+        },
+        "target_roles": [
+          {
+            "title": "Role Title",
+            "companies_in_nigeria": ["Company 1", "Company 2"],
+            "salary_range_ngn": "₦X - ₦Y per month",
+            "key_requirements": ["Skill 1", "Skill 2"],
+            "years_to_reach": "X months"
+          }
+        ],
+        "skill_priorities": ["Skill 1", "Skill 2"],
+        "salary_expectations": {
+          "entry_level": "₦X million",
+          "mid_level": "₦Y million",
+          "senior_level": "₦Z million"
+        }
+      }
+      
+      Do not include any markdown formatting, code blocks, or extra text. Output ONLY raw JSON.
+    `;
+    
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+    const cleanedText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    return JSON.parse(cleanedText);
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    throw new Error("Failed to generate career roadmap. Verify your API Key.");
+  }
+};
+

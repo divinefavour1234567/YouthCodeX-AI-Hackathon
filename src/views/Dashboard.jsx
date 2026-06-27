@@ -9,11 +9,16 @@ import {
   Zap,
   Play,
   Sparkles,
-  X
+  X,
+  Target,
+  Flame,
+  Brain,
+  Mic2,
+  BookOpen
 } from "lucide-react";
 import { playHoverSound, playErrorSound, playSuccessSound } from "../services/sound";
 
-// Custom 3D Career Universe Globe Canvas
+// Custom 3D Career Universe Globe Canvas (from original)
 const CareerGlobeCanvas = () => {
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: null, y: null, radius: 100 });
@@ -31,7 +36,6 @@ const CareerGlobeCanvas = () => {
     };
     resize();
 
-    // Generate 3D nodes on a sphere
     const numNodes = 40;
     const nodes = [];
     const radius = 80;
@@ -47,7 +51,6 @@ const CareerGlobeCanvas = () => {
       });
     }
 
-    // Generate rotating orbit rings representing Tech, Finance, Creative
     const rings = [
       { rx: 0.005, ry: 0.015, color: "rgba(0, 217, 255, 0.2)", radius: 85, tilt: 0.4 },
       { rx: 0.012, ry: 0.008, color: "rgba(157, 78, 221, 0.15)", radius: 95, tilt: -0.6 },
@@ -89,7 +92,6 @@ const CareerGlobeCanvas = () => {
       const cy = canvas.height / 2;
       const fov = 160;
 
-      // Draw Orbit Rings
       rings.forEach((ring) => {
         ctx.strokeStyle = ring.color;
         ctx.lineWidth = 1;
@@ -113,10 +115,8 @@ const CareerGlobeCanvas = () => {
         ctx.stroke();
       });
 
-      // Update and Draw Nodes
       const projected = [];
       nodes.forEach((node) => {
-        // Rotate
         const rotY = rotateY(node.x, node.z, angleY);
         const rotX = rotateX(node.y, rotY.z, angleX);
         
@@ -124,7 +124,6 @@ const CareerGlobeCanvas = () => {
         node.y = rotX.y;
         node.z = rotX.z;
 
-        // Project
         const scale = fov / (fov + node.z);
         const sx = cx + node.x * scale;
         const sy = cy + node.y * scale;
@@ -132,10 +131,8 @@ const CareerGlobeCanvas = () => {
         projected.push({ sx, sy, sz: node.z, color: node.color });
       });
 
-      // Sort by depth (painters algorithm)
       projected.sort((a, b) => b.sz - a.sz);
 
-      // Connect close nodes in 3D perspective space
       for (let i = 0; i < projected.length; i++) {
         for (let j = i + 1; j < projected.length; j++) {
           const dx = projected[i].sx - projected[j].sx;
@@ -153,7 +150,6 @@ const CareerGlobeCanvas = () => {
         }
       }
 
-      // Draw projected nodes
       projected.forEach((node) => {
         ctx.shadowBlur = node.sz < 0 ? 6 : 0;
         ctx.shadowColor = node.color;
@@ -163,9 +159,8 @@ const CareerGlobeCanvas = () => {
         ctx.arc(node.sx, node.sy, size, 0, Math.PI * 2);
         ctx.fill();
       });
-      ctx.shadowBlur = 0; // reset
+      ctx.shadowBlur = 0;
 
-      // Mouse interactivity data streams
       const mouse = mouseRef.current;
       if (mouse.x !== null && mouse.y !== null) {
         projected.forEach((node) => {
@@ -197,23 +192,11 @@ const CareerGlobeCanvas = () => {
   return (
     <div className="globe-canvas-wrapper">
       <canvas ref={canvasRef} className="globe-canvas" />
-      <style>{`
-        .globe-canvas-wrapper {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-        .globe-canvas {
-          background: transparent;
-          cursor: pointer;
-        }
-      `}</style>
     </div>
   );
 };
 
-// Cinematic 3D Career Hub Laboratory Animation Canvas
+// Cinematic 3D Career Hub Laboratory Animation Canvas (from original)
 const CareerLabCinematicCanvas = () => {
   const canvasRef = useRef(null);
 
@@ -233,7 +216,6 @@ const CareerLabCinematicCanvas = () => {
     resize();
     window.addEventListener("resize", resize);
 
-    // Particle streams
     const dataStreamParticles = [];
     for (let i = 0; i < 30; i++) {
       dataStreamParticles.push({
@@ -246,7 +228,6 @@ const CareerLabCinematicCanvas = () => {
       });
     }
 
-    // EXP Floaters
     const expFloaters = [];
     const spawnFloater = () => {
       const texts = ["+100 EXP", "+50 XP", "LEVEL UP!", "🔓 UNLOCKED", "ATS PASS"];
@@ -274,7 +255,6 @@ const CareerLabCinematicCanvas = () => {
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
 
-      // Slow epic camera zoom/pan cycle
       const time = now * 0.0003;
       const scale = 0.95 + Math.sin(time) * 0.1;
       const panX = Math.cos(time * 0.8) * 20;
@@ -283,16 +263,14 @@ const CareerLabCinematicCanvas = () => {
       ctx.save();
       ctx.translate(cx + panX, cy + panY);
       ctx.scale(scale, scale);
-      ctx.translate(-400, -150); // Center local coordinates on 800x300 canvas box
+      ctx.translate(-400, -150);
 
-      // 1. Classroom Lab Background
       const bgGrad = ctx.createLinearGradient(0, 0, 0, 300);
       bgGrad.addColorStop(0, "#080913");
       bgGrad.addColorStop(1, "#0f1124");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, 800, 300);
 
-      // Perspective grid floor
       ctx.strokeStyle = "rgba(157, 78, 221, 0.08)";
       ctx.lineWidth = 1;
       for (let i = 0; i <= 800; i += 50) {
@@ -308,7 +286,6 @@ const CareerLabCinematicCanvas = () => {
         ctx.stroke();
       }
 
-      // 2. Volumetric Window Sunlight (Golden Rays)
       ctx.fillStyle = "rgba(245, 158, 11, 0.03)";
       ctx.beginPath();
       ctx.moveTo(-100, -50);
@@ -318,7 +295,6 @@ const CareerLabCinematicCanvas = () => {
       ctx.closePath();
       ctx.fill();
 
-      // Additional bright neon beams
       const beamGrad = ctx.createLinearGradient(0, 0, 400, 300);
       beamGrad.addColorStop(0, "rgba(0, 217, 255, 0.08)");
       beamGrad.addColorStop(0.5, "rgba(157, 78, 221, 0.04)");
@@ -332,8 +308,6 @@ const CareerLabCinematicCanvas = () => {
       ctx.closePath();
       ctx.fill();
 
-      // 3. Draw Floating Holograms (Teal, Purple, Gold)
-      // Hologram 1: Career Roadmap Node Tree (Left)
       ctx.shadowBlur = 10;
       ctx.shadowColor = "#00d9ff";
       ctx.strokeStyle = "rgba(0, 217, 255, 0.25)";
@@ -368,7 +342,6 @@ const CareerLabCinematicCanvas = () => {
         ctx.fillText(n.label, n.x - 15, n.y - 12);
       });
 
-      // Hologram 2: Interview Coach Robot Avatar (Center-Right)
       ctx.shadowColor = "#9d4edd";
       ctx.strokeStyle = "rgba(157, 78, 221, 0.4)";
       ctx.fillStyle = "rgba(157, 78, 221, 0.05)";
@@ -377,7 +350,6 @@ const CareerLabCinematicCanvas = () => {
       ctx.fill();
       ctx.stroke();
 
-      // Robot eyes
       ctx.fillStyle = "#39ff14";
       ctx.shadowColor = "#39ff14";
       ctx.beginPath();
@@ -385,7 +357,6 @@ const CareerLabCinematicCanvas = () => {
       ctx.arc(490, 95 + Math.sin(now * 0.002) * 6, 3, 0, Math.PI * 2);
       ctx.fill();
 
-      // Robot mouth/pulse line
       ctx.strokeStyle = "#39ff14";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -400,7 +371,6 @@ const CareerLabCinematicCanvas = () => {
       ctx.font = "9px monospace";
       ctx.fillText("COACH V1", 458, 62 + Math.sin(now * 0.002) * 6);
 
-      // Hologram 3: ATS Resume Hologram (Right)
       ctx.shadowColor = "#ff006e";
       ctx.strokeStyle = "rgba(255, 0, 110, 0.35)";
       ctx.fillStyle = "rgba(255, 0, 110, 0.03)";
@@ -411,71 +381,61 @@ const CareerLabCinematicCanvas = () => {
       ctx.rect(-25, -35, 50, 70);
       ctx.fill();
       ctx.stroke();
-      // Resume lines
       ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
       ctx.fillRect(-15, -25, 30, 3);
       ctx.fillRect(-15, -15, 20, 2);
       ctx.fillRect(-15, -7, 25, 2);
-      ctx.fillStyle = "#ff006e"; // warning area
+      ctx.fillStyle = "#ff006e";
       ctx.fillRect(-15, 2, 22, 2);
       ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
       ctx.fillRect(-15, 11, 28, 2);
       ctx.fillRect(-15, 20, 18, 2);
       ctx.restore();
 
-      ctx.shadowBlur = 0; // reset shadow
+      ctx.shadowBlur = 0;
 
-      // 4. Draw Teenager Silhouettes (Excited, pointing)
       ctx.fillStyle = "#0c0d21";
       ctx.shadowBlur = 5;
       ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
       
-      // Teenager 1 (Left - Pointing)
       ctx.beginPath();
-      ctx.moveTo(180, 260); // feet
-      ctx.lineTo(195, 175); // torso
-      ctx.arc(202, 162, 10, 0, Math.PI * 2); // hoodie head
+      ctx.moveTo(180, 260);
+      ctx.lineTo(195, 175);
+      ctx.arc(202, 162, 10, 0, Math.PI * 2);
       ctx.moveTo(195, 175);
-      ctx.lineTo(210, 260); // other leg
-      // Pointing arm
+      ctx.lineTo(210, 260);
       ctx.moveTo(192, 185);
-      ctx.lineTo(160, 140); // arm pointing to node
+      ctx.lineTo(160, 140);
       ctx.lineWidth = 7;
       ctx.lineCap = "round";
       ctx.strokeStyle = "#0c0d21";
       ctx.stroke();
 
-      // Teenager 2 (Center - Active using AI Sandbox)
       ctx.beginPath();
       ctx.moveTo(370, 270);
       ctx.lineTo(385, 180);
-      ctx.arc(388, 166, 11, 0, Math.PI * 2); // head
+      ctx.arc(388, 166, 11, 0, Math.PI * 2);
       ctx.moveTo(385, 180);
       ctx.lineTo(400, 270);
-      // Arm gesturing/reaching to Robot Coach
       ctx.moveTo(385, 190);
       ctx.lineTo(430, 170);
       ctx.stroke();
 
-      // Teenager 3 (Right - Celebrating)
       ctx.beginPath();
       ctx.moveTo(560, 260);
       ctx.lineTo(550, 170);
-      ctx.arc(548, 156, 10, 0, Math.PI * 2); // head
+      ctx.arc(548, 156, 10, 0, Math.PI * 2);
       ctx.moveTo(550, 170);
       ctx.lineTo(530, 260);
-      // Both arms up in celebration!
       ctx.moveTo(550, 180);
       ctx.lineTo(570, 140);
       ctx.moveTo(548, 180);
       ctx.lineTo(525, 140);
       ctx.stroke();
 
-      // Reset style settings
       ctx.lineWidth = 1;
       ctx.lineCap = "butt";
 
-      // 5. Data visualization particles & comets
       dataStreamParticles.forEach((p) => {
         p.x += p.speedX;
         p.y += p.speedY;
@@ -488,7 +448,6 @@ const CareerLabCinematicCanvas = () => {
         ctx.fill();
       });
 
-      // 6. EXP floaters updates
       for (let i = expFloaters.length - 1; i >= 0; i--) {
         const f = expFloaters[i];
         f.y += f.vy;
@@ -522,42 +481,67 @@ const CareerLabCinematicCanvas = () => {
   return (
     <div className="career-lab-container">
       <canvas ref={canvasRef} className="career-lab-canvas" />
-      <style>{`
-        .career-lab-container {
-          position: relative;
-          width: 100%;
-          border-radius: var(--border-radius-lg);
-          overflow: hidden;
-          background: #080913;
-          border: 1px solid var(--glass-border);
-          box-shadow: 0 0 25px rgba(157, 78, 221, 0.15);
-          height: 300px;
-          margin-bottom: 1.5rem;
-        }
-        .career-lab-canvas {
-          display: block;
-          width: 100%;
-          height: 100%;
-        }
-      `}</style>
     </div>
   );
 };
 
+// NEW: Animated Progress Ring Component
+const ProgressRing = ({ value, max = 100, label, size = 100 }) => {
+  const circumference = 2 * Math.PI * (size / 2 - 8);
+  const offset = circumference - (value / max) * circumference;
+  const percentage = Math.round((value / max) * 100);
+
+  return (
+    <div className="progress-ring-container">
+      <svg width={size} height={size} className="progress-ring-svg">
+        <circle cx={size / 2} cy={size / 2} r={size / 2 - 8} className="progress-ring-background" />
+        <circle 
+          cx={size / 2} 
+          cy={size / 2} 
+          r={size / 2 - 8} 
+          className="progress-ring-circle"
+          style={{ strokeDashoffset: offset }}
+        />
+        <text x="50%" y="50%" className="progress-ring-text">{percentage}%</text>
+      </svg>
+      <span className="progress-ring-label">{label}</span>
+    </div>
+  );
+};
+
+// NEW: Achievement Badge Component with Tier System
+const AchievementBadge = ({ icon: Icon, title, description, tier = "bronze", earned = false, xp = 0 }) => {
+  const tierStyles = {
+    bronze: { color: "#CD7F32", glow: "rgba(205, 127, 50, 0.4)" },
+    silver: { color: "#C0C0C0", glow: "rgba(192, 192, 192, 0.4)" },
+    gold: { color: "#FFD700", glow: "rgba(255, 215, 0, 0.4)" },
+    platinum: { color: "#E5E4E2", glow: "rgba(229, 228, 226, 0.4)" }
+  };
+
+  const style = tierStyles[tier] || tierStyles.bronze;
+
+  return (
+    <div className={`achievement-badge ${earned ? "earned" : "locked"}`} style={earned ? { boxShadow: `0 0 15px ${style.glow}` } : {}}>
+      <div className="achievement-icon-wrapper" style={earned ? { color: style.color } : {}}>
+        <Icon size={24} />
+      </div>
+      <h5>{title}</h5>
+      <p>{description}</p>
+      {earned && <span className="achievement-xp">+{xp} XP</span>}
+    </div>
+  );
+};
+
+// Enhanced Dashboard Component
 export default function Dashboard({ setView }) {
   const { progress, addExperiencePoints } = useContext(AppContext);
   const [activeStep, setActiveStep] = useState(0);
-
-  // Comet & Riddle states
   const [cometPos, setCometPos] = useState({ x: -50, y: 100, active: false });
   const [activeRiddle, setActiveRiddle] = useState(null);
   const [riddleSelected, setRiddleSelected] = useState("");
   const [riddleResult, setRiddleResult] = useState(null);
-
-  // Glitch Storm state
   const [glitchActive, setGlitchActive] = useState(false);
 
-  // Comet spawning cycle
   useEffect(() => {
     const cometTimer = setInterval(() => {
       if (!activeRiddle) {
@@ -576,12 +560,11 @@ export default function Dashboard({ setView }) {
     return () => clearInterval(cometTimer);
   }, [activeRiddle]);
 
-  // Glitch Storm spawning cycle
   useEffect(() => {
     const glitchTimer = setInterval(() => {
       if (Math.random() < 0.15) {
         setGlitchActive(true);
-        playErrorSound(); // glitch sound
+        playErrorSound();
         setTimeout(() => {
           setGlitchActive(false);
         }, 500);
@@ -625,24 +608,17 @@ export default function Dashboard({ setView }) {
     }, 1600);
   };
 
-  // Stats calculators
   const totalMilestones = CAREER_PATHS.reduce((acc, curr) => acc + curr.milestones.length, 0);
   const completedCount = progress.completedMilestones.length;
-  const milestonesPercent = totalMilestones === 0 
-    ? 0 
-    : Math.floor((completedCount / totalMilestones) * 100);
-
+  const milestonesPercent = totalMilestones === 0 ? 0 : Math.floor((completedCount / totalMilestones) * 100);
   const rolesUnlocked = progress.completedRpgs.length;
-  const interviewsCompleted = Object.values(progress.interviewScores).reduce(
-    (acc, curr) => acc + curr.length, 0
-  );
+  const interviewsCompleted = Object.values(progress.interviewScores).reduce((acc, curr) => acc + curr.length, 0);
 
   const chartPoints = progress.scoreHistory || [];
   const chartHeight = 120;
   const chartWidth = 400;
   const padding = 20;
 
-  // Generate SVG coordinates for scores
   const getCoordinates = () => {
     if (chartPoints.length < 2) return "";
     const xStep = (chartWidth - padding * 2) / (chartPoints.length - 1);
@@ -670,79 +646,114 @@ export default function Dashboard({ setView }) {
       title: "Explore Career Roadmap",
       desc: "Select a job node in the Career Explorer, mark study checkpoints to earn XP, and simulate net salaries.",
       actionLabel: "Go to Career Explorer",
-      targetView: "roadmap"
+      targetView: "roadmap",
+      icon: Target
     },
     {
       title: "Scan Resume & Visual Diff",
       desc: "Paste your resume and target job. View an ATS score and toggle the Visual Diff tab to inspect inline additions/deletions.",
       actionLabel: "Go to Resume Critique",
-      targetView: "resume"
+      targetView: "resume",
+      icon: BookOpen
     },
     {
       title: "Practice Voice Interview",
       desc: "Select a role and chat with the AI. Toggle Voice Read-Aloud to hear questions spoken with a pulsing audio visualizer.",
       actionLabel: "Start Voice Interview",
-      targetView: "interview"
+      targetView: "interview",
+      icon: Mic2
     }
   ];
 
+  const achievements = [
+    { icon: BookOpen, title: "Knowledge Seeker", desc: "Complete 5 roadmaps", tier: "gold", earned: true, xp: 100 },
+    { icon: Flame, title: "Quick Starter", desc: "Start career path", tier: "bronze", earned: true, xp: 25 },
+    { icon: Brain, title: "Skill Master", desc: "Max 3 skills", tier: "silver", earned: true, xp: 75 },
+    { icon: Trophy, title: "Interview Champion", desc: "Score 95%+", tier: "platinum", earned: false, xp: 200 },
+    { icon: Award, title: "Career Architect", desc: "Complete all paths", tier: "gold", earned: false, xp: 500 },
+  ];
+
   return (
-    <div className={`dashboard-view ${glitchActive ? "glitch-shake" : ""}`}>
-      {/* Welcome Banner featuring 3D Career Globe */}
-      <div className="welcome-banner glass-card pulse-glow">
-        <div className="welcome-text">
-          <h2 className="gradient-text-accent">Ready to launch your career?</h2>
-          <p>Complete milestones, practice live interviews, and optimize your resume to gain XP and unlock new ranks.</p>
-          <div className="xp-inline-counter">
-            <Zap size={16} className="xp-inline-icon" />
-            <span>{progress.expPoints} EXP Accumulated</span>
+    <div className={`dashboard-view-enhanced ${glitchActive ? "glitch-shake" : ""}`}>
+      {/* HERO LEVEL CARD */}
+      <div className="hero-section glass-card">
+        <div className="hero-content">
+          <div className="hero-text">
+            <span className="hero-badge">LEVEL {progress.userLevel || 1}</span>
+            <h1>Ready to launch your career?</h1>
+            <p>You're on a quest to master your career path. Unlock skills, ace interviews, and level up your resume.</p>
+            <div className="hero-stats-mini">
+              <div className="hero-stat">
+                <span className="stat-num">{progress.expPoints || 0}</span>
+                <span className="stat-txt">XP Earned</span>
+              </div>
+              <div className="hero-stat">
+                <span className="stat-num">{completedCount}/{totalMilestones}</span>
+                <span className="stat-txt">Milestones</span>
+              </div>
+              <div className="hero-stat">
+                <span className="stat-num">{interviewsCompleted}</span>
+                <span className="stat-txt">Interviews</span>
+              </div>
+            </div>
+          </div>
+          <CareerGlobeCanvas />
+        </div>
+
+        <div className="hero-xp-bar-section">
+          <div className="xp-label">
+            <h4>Current Level Progress</h4>
+            <span className="xp-points">{progress.expPoints || 0} / 5000 XP</span>
+          </div>
+          <div className="xp-bar-wrapper">
+            <div className="xp-bar-fill" style={{ width: `${((progress.expPoints || 0) % 5000) / 50}%` }} />
           </div>
         </div>
-        
-        {/* WebGL Particle Globe */}
-        <CareerGlobeCanvas />
       </div>
 
-      {/* Cinematic 3D Career Hub Laboratory Banner */}
+      {/* Cinematic Lab Canvas */}
       <CareerLabCinematicCanvas />
 
-      {/* Quick Start Stepper Wizard */}
-      <div className="quick-start-wizard glass-card">
-        <div className="wizard-header">
-          <Award size={18} className="wizard-icon" />
-          <h4>Interactive Onboarding Stepper</h4>
+      {/* ENHANCED QUICK START WIZARD */}
+      <div className="wizard-enhanced glass-card">
+        <div className="wizard-title-section">
+          <Award size={20} className="wizard-title-icon" />
+          <h3>Your Onboarding Quest</h3>
+          <p>Complete these 3 steps to master PathFinder AI</p>
         </div>
-        
-        <div className="wizard-stepper-row">
+
+        <div className="wizard-steps-container">
           {wizardSteps.map((step, idx) => {
             const isCompleted = idx < activeStep;
             const isActive = idx === activeStep;
+            const Icon = step.icon;
+
             return (
-              <React.Fragment key={idx}>
-                <button
-                  type="button"
-                  className={`step-indicator-btn ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""}`}
-                  onClick={() => { playHoverSound(); setActiveStep(idx); }}
-                >
-                  <span className="step-num">{isCompleted ? "✓" : idx + 1}</span>
-                  <span className="step-label">{step.title.split(" ")[0]}..</span>
-                </button>
-                {idx < wizardSteps.length - 1 && (
-                  <div className={`step-line ${idx < activeStep ? "completed" : ""}`}></div>
-                )}
-              </React.Fragment>
+              <button
+                key={idx}
+                className={`wizard-step-card ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""}`}
+                onClick={() => { playHoverSound(); setActiveStep(idx); }}
+              >
+                <div className="step-card-icon">
+                  {isCompleted ? <CheckSquare size={24} /> : <Icon size={24} />}
+                </div>
+                <div className="step-card-content">
+                  <h5>Step {idx + 1}</h5>
+                  <p>{step.title}</p>
+                </div>
+                <div className="step-card-arrow">
+                  <Play size={16} />
+                </div>
+              </button>
             );
           })}
         </div>
 
-        <div className="wizard-step-body glass-card">
-          <div className="wizard-body-content">
-            <h5>Step {activeStep + 1}: {wizardSteps[activeStep].title}</h5>
-            <p>{wizardSteps[activeStep].desc}</p>
-          </div>
+        <div className="wizard-detail-section glass-card">
+          <h4>{wizardSteps[activeStep].title}</h4>
+          <p>{wizardSteps[activeStep].desc}</p>
           <button 
-            type="button" 
-            className="btn btn-cyan btn-wizard-action"
+            className="btn btn-cyan btn-full"
             onClick={() => { playHoverSound(); setView(wizardSteps[activeStep].targetView); }}
           >
             <span>{wizardSteps[activeStep].actionLabel}</span>
@@ -751,44 +762,22 @@ export default function Dashboard({ setView }) {
         </div>
       </div>
 
-      {/* Stats row */}
-      <div className="stats-grid grid-3">
-        <div className="stat-card glass-card">
-          <div className="stat-icon-container bg-indigo">
-            <CheckSquare className="stat-icon text-indigo" />
-          </div>
-          <div className="stat-data">
-            <span className="stat-value">{completedCount}/{totalMilestones}</span>
-            <span className="stat-label">Milestones Completed ({milestonesPercent}%)</span>
-          </div>
-        </div>
-
-        <div className="stat-card glass-card">
-          <div className="stat-icon-container bg-cyan">
-            <Trophy className="stat-icon text-cyan" />
-          </div>
-          <div className="stat-data">
-            <span className="stat-value">{interviewsCompleted}</span>
-            <span className="stat-label">Interviews Conducted</span>
-          </div>
-        </div>
-
-        <div className="stat-card glass-card">
-          <div className="stat-icon-container bg-purple">
-            <Award className="stat-icon text-purple" />
-          </div>
-          <div className="stat-data">
-            <span className="stat-value">{rolesUnlocked}</span>
-            <span className="stat-label">RPG Roles Experienced</span>
-          </div>
+      {/* PROGRESS RINGS & STATS */}
+      <div className="progress-section">
+        <div className="progress-rings-grid">
+          <ProgressRing value={completedCount} max={totalMilestones} label="Milestones" size={110} />
+          <ProgressRing value={interviewsCompleted} max={10} label="Interviews" size={110} />
+          <ProgressRing value={rolesUnlocked} max={15} label="Roles Explored" size={110} />
+          <ProgressRing value={Math.min((progress.expPoints || 0) / 50, 100)} max={100} label="Level Up" size={110} />
         </div>
       </div>
 
-      <div className="dashboard-charts grid-2">
+      {/* PERFORMANCE CHART + QUICK ACTIONS */}
+      <div className="dashboard-bottom-grid grid-2">
         <div className="chart-card glass-card">
           <div className="chart-header">
-            <TrendingUp size={18} className="chart-header-icon" />
-            <h4>Performance History</h4>
+            <TrendingUp size={18} className="chart-icon" />
+            <h4>Performance Timeline</h4>
           </div>
           
           <div className="chart-container">
@@ -796,300 +785,425 @@ export default function Dashboard({ setView }) {
               <div className="svg-wrapper">
                 <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="svg-chart">
                   <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="0.4"/>
-                      <stop offset="100%" stopColor="var(--accent-primary)" stopOpacity="0.0"/>
+                    <linearGradient id="chartGradientEnhanced" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#00d9ff" stopOpacity="0.4"/>
+                      <stop offset="100%" stopColor="#00d9ff" stopOpacity="0.0"/>
                     </linearGradient>
                   </defs>
                   
-                  {/* Grid Lines */}
-                  <line x1={padding} y1={padding} x2={chartWidth - padding} y2={padding} stroke="var(--glass-border)" strokeWidth="0.5" />
-                  <line x1={padding} y1={chartHeight / 2} x2={chartWidth - padding} y2={chartHeight / 2} stroke="var(--glass-border)" strokeWidth="0.5" />
-                  <line x1={padding} y1={chartHeight - padding} x2={chartWidth - padding} y2={chartHeight - padding} stroke="var(--glass-border)" strokeWidth="0.5" />
+                  <line x1={padding} y1={padding} x2={chartWidth - padding} y2={padding} stroke="rgba(0,217,255,0.1)" strokeWidth="0.5" />
+                  <line x1={padding} y1={chartHeight / 2} x2={chartWidth - padding} y2={chartHeight / 2} stroke="rgba(0,217,255,0.1)" strokeWidth="0.5" />
+                  <line x1={padding} y1={chartHeight - padding} x2={chartWidth - padding} y2={chartHeight - padding} stroke="rgba(0,217,255,0.1)" strokeWidth="0.5" />
 
-                  {/* Filled Area */}
-                  {areaPoints && <polygon points={areaPoints} fill="url(#chartGradient)" />}
+                  {areaPoints && <polygon points={areaPoints} fill="url(#chartGradientEnhanced)" />}
 
-                  {/* Line */}
                   {polylinePoints && (
                     <polyline
                       fill="none"
-                      stroke="var(--accent-secondary)"
+                      stroke="#00d9ff"
                       strokeWidth="2.5"
                       points={polylinePoints}
                     />
                   )}
 
-                  {/* Data Points */}
                   {chartPoints.map((pt, i) => {
                     const xStep = (chartWidth - padding * 2) / (chartPoints.length - 1);
                     const x = padding + i * xStep;
                     const y = chartHeight - padding - (pt.score / 100) * (chartHeight - padding * 2);
                     return (
-                      <circle
-                        key={i}
-                        cx={x}
-                        cy={y}
-                        r="4"
-                        fill="var(--accent-secondary)"
-                        stroke="var(--bg-secondary)"
-                        strokeWidth="1.5"
-                      />
+                      <circle key={i} cx={x} cy={y} r="4" fill="#00d9ff" stroke="#121222" strokeWidth="1.5" />
                     );
                   })}
                 </svg>
-                <div className="chart-labels">
-                  {chartPoints.map((pt, i) => (
-                    <div key={i} className="chart-label-item">
-                      <span className="lbl-date">{pt.date}</span>
-                      <span className="lbl-score">{pt.score}%</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             ) : (
-              <p className="no-data">No performance scores logged yet. Start an interview to see data!</p>
+              <p className="no-data">No interview data yet. Start practicing to see your progress!</p>
             )}
           </div>
         </div>
 
-        <div className="quick-actions-card glass-card">
-          <h4>Launchpad Tasks</h4>
-          <div className="actions-list">
-            <button className="action-row" onClick={() => { playHoverSound(); setView("roadmap"); }}>
-              <div className="action-text">
-                <h5>Roadmap Exploration</h5>
-                <p>Complete learning milestones and build skills.</p>
-              </div>
-              <TrendingUp size={18} className="row-arrow" />
-            </button>
+        <div className="feature-cards-grid">
+          <button className="feature-cta glass-card" onClick={() => { playHoverSound(); setView("roadmap"); }}>
+            <Target className="feature-icon" />
+            <h5>Career Explorer</h5>
+            <p>{rolesUnlocked} roles mapped</p>
+          </button>
 
-            <button className="action-row" onClick={() => { playHoverSound(); setView("interview"); }}>
-              <div className="action-text">
-                <h5>Interview Sandbox</h5>
-                <p>Practice live interviews and get detailed grades.</p>
-              </div>
-              <TrendingUp size={18} className="row-arrow" />
-            </button>
+          <button className="feature-cta glass-card" onClick={() => { playHoverSound(); setView("resume"); }}>
+            <BookOpen className="feature-icon" />
+            <h5>Resume Genius</h5>
+            <p>ATS Score: 92%</p>
+          </button>
 
-            <button className="action-row" onClick={() => { playHoverSound(); setView("resume"); }}>
-              <div className="action-text">
-                <h5>Resume Critique</h5>
-                <p>Check your compatibility scorecard against jobs.</p>
-              </div>
-              <TrendingUp size={18} className="row-arrow" />
-            </button>
-          </div>
+          <button className="feature-cta glass-card" onClick={() => { playHoverSound(); setView("interview"); }}>
+            <Mic2 className="feature-icon" />
+            <h5>Interview Sandbox</h5>
+            <p>{interviewsCompleted} completed</p>
+          </button>
+
+          <button className="feature-cta glass-card" onClick={() => { playHoverSound(); setView("roadmap"); }}>
+            <Brain className="feature-icon" />
+            <h5>Skill Tree</h5>
+            <p>24 skills available</p>
+          </button>
+        </div>
+      </div>
+
+      {/* ACHIEVEMENTS SHOWCASE */}
+      <div className="achievements-showcase glass-card">
+        <div className="achievements-header">
+          <Trophy size={20} className="achievements-icon" />
+          <h3>Your Achievements</h3>
+          <span className="achievement-count">{achievements.filter(a => a.earned).length}/5 Unlocked</span>
+        </div>
+
+        <div className="achievements-grid">
+          {achievements.map((ach, i) => (
+            <AchievementBadge key={i} {...ach} />
+          ))}
         </div>
       </div>
 
       <style>{`
-        .dashboard-view {
+        .dashboard-view-enhanced {
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
+          animation: fadeIn 0.6s ease-out;
         }
 
-        .welcome-banner {
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-section {
+          background: linear-gradient(135deg, rgba(0, 217, 255, 0.1) 0%, rgba(157, 78, 221, 0.08) 100%) !important;
+          border-color: rgba(0, 217, 255, 0.3) !important;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .hero-content {
           display: flex;
-          align-items: center;
           justify-content: space-between;
-          padding: 1.5rem 2rem !important;
-          background: linear-gradient(135deg, rgba(157, 78, 221, 0.15) 0%, rgba(0, 217, 255, 0.1) 100%) !important;
-          border-color: rgba(0, 217, 255, 0.25) !important;
-        }
-
-        .welcome-text h2 {
-          font-size: 1.75rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .welcome-text p {
-          max-width: 500px;
-          font-size: 0.95rem;
-          margin-bottom: 1rem;
-        }
-
-        .xp-inline-counter {
-          display: inline-flex;
           align-items: center;
-          gap: 0.5rem;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--glass-border);
-          padding: 0.45rem 1rem;
-          border-radius: var(--border-radius-md);
-          font-size: 0.85rem;
-          font-weight: 700;
-          color: var(--accent-secondary);
+          gap: 2rem;
+          margin-bottom: 2rem;
         }
 
-        .xp-inline-icon {
-          color: var(--accent-warning);
-        }
-
-        /* Stepper Wizard Styling */
-        .quick-start-wizard {
+        .hero-text {
+          flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
-          background: rgba(18, 20, 34, 0.4) !important;
-          border-color: rgba(0, 217, 255, 0.15) !important;
+          gap: 0.75rem;
         }
 
-        .wizard-header {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          border-bottom: 1px solid var(--glass-border);
-          padding-bottom: 0.5rem;
+        .hero-badge {
+          display: inline-block;
+          width: fit-content;
+          background: rgba(0, 217, 255, 0.2);
+          border: 1px solid rgba(0, 217, 255, 0.4);
+          color: #00d9ff;
+          font-size: 0.75rem;
+          font-weight: 800;
+          padding: 0.4rem 0.8rem;
+          border-radius: 0.5rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
-        .wizard-icon {
-          color: var(--accent-secondary);
+        .hero-text h1 {
+          font-size: 2rem;
+          font-weight: 900;
+          margin: 0;
+          background: linear-gradient(135deg, #00d9ff, #9d4edd);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
 
-        .wizard-stepper-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 1rem;
-          gap: 0.5rem;
-        }
-
-        .step-indicator-btn {
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          cursor: pointer;
+        .hero-text p {
+          font-size: 0.95rem;
           color: var(--text-secondary);
-          transition: all 0.3s ease;
-          font-family: var(--font-sans);
-          font-size: 0.85rem;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        .hero-stats-mini {
+          display: flex;
+          gap: 1.5rem;
+          margin-top: 0.5rem;
+        }
+
+        .hero-stat {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .stat-num {
+          font-size: 1.5rem;
+          font-weight: 900;
+          color: #00d9ff;
+        }
+
+        .stat-txt {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          text-transform: uppercase;
           font-weight: 600;
         }
 
-        .step-num {
-          width: 26px;
-          height: 26px;
+        .hero-xp-bar-section {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid rgba(0, 217, 255, 0.1);
+        }
+
+        .xp-label {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .xp-label h4 {
+          margin: 0;
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+        }
+
+        .xp-points {
+          font-size: 0.85rem;
+          color: #00d9ff;
+          font-weight: 700;
+        }
+
+        .xp-bar-wrapper {
+          width: 100%;
+          height: 8px;
+          background: rgba(0, 0, 0, 0.3);
+          border-radius: 10px;
+          overflow: hidden;
+          border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .xp-bar-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #00d9ff, #9d4edd);
+          transition: width 0.6s ease-out;
+          box-shadow: 0 0 10px rgba(0, 217, 255, 0.6);
+        }
+
+        .wizard-enhanced {
+          background: rgba(18, 20, 38, 0.5) !important;
+          border-color: rgba(157, 78, 221, 0.2) !important;
+        }
+
+        .wizard-title-section {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid rgba(0, 217, 255, 0.1);
+        }
+
+        .wizard-title-icon {
+          color: #9d4edd;
+        }
+
+        .wizard-title-section h3 {
+          margin: 0;
+          font-size: 1.25rem;
+        }
+
+        .wizard-title-section p {
+          margin: 0 0 0 auto;
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+        }
+
+        .wizard-steps-container {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .wizard-step-card {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(0, 217, 255, 0.15);
+          padding: 1rem;
+          border-radius: 0.75rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-align: left;
+        }
+
+        .wizard-step-card:hover {
+          background: rgba(0, 217, 255, 0.08);
+          border-color: rgba(0, 217, 255, 0.3);
+          transform: translateY(-2px);
+        }
+
+        .wizard-step-card.active {
+          background: rgba(0, 217, 255, 0.1);
+          border-color: rgba(0, 217, 255, 0.5);
+          box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
+        }
+
+        .wizard-step-card.completed {
+          background: rgba(57, 255, 20, 0.08);
+          border-color: rgba(57, 255, 20, 0.3);
+        }
+
+        .step-card-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 0.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(0, 217, 255, 0.15);
+          color: #00d9ff;
+          flex-shrink: 0;
+        }
+
+        .wizard-step-card.completed .step-card-icon {
+          background: rgba(57, 255, 20, 0.15);
+          color: #39ff14;
+        }
+
+        .step-card-content {
+          flex: 1;
+        }
+
+        .step-card-content h5 {
+          margin: 0 0 0.25rem 0;
+          font-size: 0.85rem;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+        }
+
+        .step-card-content p {
+          margin: 0;
+          font-size: 0.9rem;
+          font-weight: 600;
+        }
+
+        .step-card-arrow {
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 2px solid var(--glass-border);
-          background: var(--bg-tertiary);
-          font-size: 0.75rem;
+          background: rgba(0, 217, 255, 0.1);
+          color: #00d9ff;
+          flex-shrink: 0;
           transition: all 0.3s ease;
         }
 
-        .step-indicator-btn:hover {
-          color: var(--text-primary);
+        .wizard-step-card:hover .step-card-arrow {
+          background: rgba(0, 217, 255, 0.3);
+          transform: translateX(3px);
         }
 
-        .step-indicator-btn.active {
-          color: var(--accent-secondary);
-        }
-
-        .step-indicator-btn.active .step-num {
-          border-color: var(--accent-secondary);
-          background: rgba(0, 217, 255, 0.1);
-          box-shadow: var(--glow-primary);
-        }
-
-        .step-indicator-btn.completed {
-          color: var(--accent-success);
-        }
-
-        .step-indicator-btn.completed .step-num {
-          border-color: var(--accent-success);
-          background: rgba(57, 255, 20, 0.1);
-          color: var(--accent-success);
-        }
-
-        .step-line {
-          flex-grow: 1;
-          height: 2px;
-          background: var(--glass-border);
-          transition: background 0.3s ease;
-        }
-
-        .step-line.completed {
-          background: var(--accent-success);
-        }
-
-        .wizard-step-body {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1.25rem !important;
+        .wizard-detail-section {
           background: rgba(10, 11, 18, 0.6) !important;
-          border-color: var(--glass-border) !important;
-          gap: 1.5rem;
+          border-color: rgba(0, 217, 255, 0.15) !important;
+          padding: 1.5rem !important;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
         }
 
-        @media (max-width: 768px) {
-          .wizard-step-body {
-            flex-direction: column;
-            text-align: center;
-          }
+        .wizard-detail-section h4 {
+          margin: 0;
+          font-size: 1.1rem;
         }
 
-        .wizard-body-content h5 {
-          font-size: 0.95rem;
-          margin-bottom: 0.25rem;
-          color: var(--text-primary);
-        }
-
-        .wizard-body-content p {
-          font-size: 0.85rem;
+        .wizard-detail-section p {
+          margin: 0;
           color: var(--text-secondary);
-          line-height: 1.4;
+          line-height: 1.5;
         }
 
-        .btn-wizard-action {
-          flex-shrink: 0;
-          font-size: 0.85rem;
-          padding: 0.65rem 1.25rem;
+        .btn-full {
+          width: 100%;
         }
 
-        .stat-card {
+        .progress-section {
           display: flex;
-          align-items: center;
-          gap: 1.25rem;
-        }
-
-        .stat-icon-container {
-          width: 50px;
-          height: 50px;
-          border-radius: var(--border-radius-md);
-          display: flex;
-          align-items: center;
           justify-content: center;
         }
 
-        .stat-icon-container.bg-indigo { background: rgba(157, 78, 221, 0.1); }
-        .stat-icon-container.bg-cyan { background: rgba(0, 217, 255, 0.1); }
-        .stat-icon-container.bg-purple { background: rgba(157, 78, 221, 0.1); }
+        .progress-rings-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+          gap: 2rem;
+          width: 100%;
+          max-width: 600px;
+          margin: 0 auto;
+        }
 
-        .stat-icon.text-indigo { color: var(--accent-primary); }
-        .stat-icon.text-cyan { color: var(--accent-secondary); }
-        .stat-icon.text-purple { color: var(--accent-purple); }
-
-        .stat-data {
+        .progress-ring-container {
           display: flex;
           flex-direction: column;
+          align-items: center;
+          gap: 0.75rem;
         }
 
-        .stat-value {
-          font-size: 1.5rem;
+        .progress-ring-svg {
+          filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.2));
+        }
+
+        .progress-ring-background {
+          fill: none;
+          stroke: rgba(0, 217, 255, 0.1);
+          stroke-width: 8;
+        }
+
+        .progress-ring-circle {
+          fill: none;
+          stroke: #00d9ff;
+          stroke-width: 8;
+          stroke-linecap: round;
+          transition: stroke-dashoffset 0.6s ease;
+        }
+
+        .progress-ring-text {
+          text-anchor: middle;
+          dominant-baseline: middle;
+          font-size: 18px;
           font-weight: 800;
-          line-height: 1.1;
+          fill: #00d9ff;
         }
 
-        .stat-label {
-          font-size: 0.85rem;
+        .progress-ring-label {
+          font-size: 0.8rem;
           color: var(--text-secondary);
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+
+        .dashboard-bottom-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+          .dashboard-bottom-grid {
+            grid-template-columns: 1fr;
+          }
         }
 
         .chart-card {
@@ -1104,15 +1218,15 @@ export default function Dashboard({ setView }) {
           gap: 0.5rem;
         }
 
-        .chart-header-icon {
-          color: var(--accent-secondary);
+        .chart-icon {
+          color: #00d9ff;
         }
 
         .chart-container {
+          min-height: 160px;
           display: flex;
           align-items: center;
           justify-content: center;
-          height: 160px;
         }
 
         .svg-wrapper {
@@ -1128,100 +1242,175 @@ export default function Dashboard({ setView }) {
           overflow: visible;
         }
 
-        .chart-labels {
-          display: flex;
-          justify-content: space-between;
-          padding: 0 5px;
-        }
-
-        .chart-label-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .lbl-date {
-          font-size: 0.7rem;
-          color: var(--text-muted);
-          font-weight: 600;
-        }
-
-        .lbl-score {
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: var(--accent-secondary);
-        }
-
         .no-data {
           font-size: 0.9rem;
           color: var(--text-muted);
           text-align: center;
         }
 
-        .quick-actions-card {
-          display: flex;
-          flex-direction: column;
+        .feature-cards-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
           gap: 1rem;
         }
 
-        .actions-list {
+        @media (max-width: 768px) {
+          .feature-cards-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .feature-cta {
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .action-row {
-          display: flex;
           align-items: center;
-          justify-content: space-between;
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid var(--glass-border);
-          border-radius: var(--border-radius-md);
-          padding: 0.85rem 1.25rem;
-          text-align: left;
+          justify-content: center;
+          text-align: center;
+          padding: 1.25rem !important;
+          border-color: rgba(0, 217, 255, 0.15) !important;
           cursor: pointer;
-          transition: all 0.2s ease;
-          width: 100%;
+          transition: all 0.3s ease;
+          gap: 0.5rem;
         }
 
-        .action-row:hover {
-          background: rgba(0, 217, 255, 0.05);
-          border-color: var(--glass-border-hover);
-          transform: translateX(4px);
+        .feature-cta:hover {
+          background: rgba(0, 217, 255, 0.08) !important;
+          border-color: rgba(0, 217, 255, 0.4) !important;
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(0, 217, 255, 0.15);
         }
 
-        .action-text h5 {
+        .feature-icon {
+          width: 32px;
+          height: 32px;
+          color: #00d9ff;
+        }
+
+        .feature-cta h5 {
+          margin: 0;
           font-size: 0.95rem;
-          margin-bottom: 0.15rem;
         }
 
-        .action-text p {
-          font-size: 0.8rem;
+        .feature-cta p {
+          margin: 0;
+          font-size: 0.75rem;
           color: var(--text-secondary);
         }
 
-        .row-arrow {
-          color: var(--text-muted);
-          transition: color 0.2s ease, transform 0.2s ease;
+        .achievements-showcase {
+          background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(157, 78, 221, 0.08) 100%) !important;
+          border-color: rgba(255, 215, 0, 0.2) !important;
         }
 
-        .action-row:hover .row-arrow {
-          color: var(--accent-secondary);
-          transform: translateX(2px);
+        .achievements-header {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid rgba(255, 215, 0, 0.1);
         }
 
-        @media (max-width: 576px) {
-          .welcome-banner {
+        .achievements-icon {
+          color: #FFD700;
+        }
+
+        .achievement-count {
+          margin-left: auto;
+          background: rgba(255, 215, 0, 0.1);
+          color: #FFD700;
+          font-size: 0.75rem;
+          font-weight: 700;
+          padding: 0.3rem 0.6rem;
+          border-radius: 0.4rem;
+          text-transform: uppercase;
+        }
+
+        .achievements-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 1rem;
+        }
+
+        .achievement-badge {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 1rem;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 215, 0, 0.15);
+          border-radius: 0.75rem;
+          gap: 0.5rem;
+          transition: all 0.3s ease;
+        }
+
+        .achievement-badge.earned {
+          background: rgba(255, 215, 0, 0.08);
+          border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .achievement-badge.locked {
+          opacity: 0.5;
+        }
+
+        .achievement-icon-wrapper {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 215, 0, 0.1);
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .achievement-badge.earned .achievement-icon-wrapper {
+          background: rgba(255, 215, 0, 0.15);
+        }
+
+        .achievement-badge h5 {
+          margin: 0;
+          font-size: 0.8rem;
+          font-weight: 700;
+        }
+
+        .achievement-badge p {
+          margin: 0;
+          font-size: 0.7rem;
+          color: var(--text-secondary);
+          line-height: 1.3;
+        }
+
+        .achievement-xp {
+          font-size: 0.7rem;
+          color: var(--accent-lime);
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+          .hero-content {
             flex-direction: column;
-            text-align: center;
-            gap: 1.5rem;
+            gap: 1rem;
           }
-          .welcome-text p {
+
+          .hero-text h1 {
+            font-size: 1.5rem;
+          }
+
+          .wizard-steps-container {
+            grid-template-columns: 1fr;
+          }
+
+          .progress-rings-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
             max-width: 100%;
           }
         }
 
-        /* Comet and Riddle Modal styles */
         .glowing-comet-star {
           position: fixed;
           left: -40px;
@@ -1238,10 +1427,12 @@ export default function Dashboard({ setView }) {
           box-shadow: 0 0 20px #ff006e;
           animation: flyComet 6s linear forwards;
         }
+
         @keyframes flyComet {
           from { left: -40px; transform: rotate(0deg); }
           to { left: 100%; transform: rotate(360deg); }
         }
+
         .comet-tooltip {
           position: absolute;
           bottom: -25px;
@@ -1253,6 +1444,7 @@ export default function Dashboard({ setView }) {
           letter-spacing: 0.05em;
           text-shadow: 0 0 4px #000;
         }
+
         .riddle-modal-backdrop {
           position: fixed;
           top: 0;
@@ -1266,6 +1458,7 @@ export default function Dashboard({ setView }) {
           align-items: center;
           justify-content: center;
         }
+
         .riddle-modal-content {
           max-width: 440px;
           width: 90%;
@@ -1279,33 +1472,39 @@ export default function Dashboard({ setView }) {
           gap: 1.25rem;
           animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
         @keyframes modalPop {
           from { transform: scale(0.9); opacity: 0; }
           to { transform: scale(1); opacity: 1; }
         }
+
         .riddle-header {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 0.5rem;
         }
+
         .riddle-header h4 {
           font-size: 1.2rem;
           color: var(--text-primary);
         }
+
         .riddle-question {
           font-size: 0.95rem;
           line-height: 1.45;
           color: var(--text-secondary);
         }
+
         .riddle-options-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 0.75rem;
         }
+
         .riddle-opt-btn {
           padding: 0.6rem;
-          background: rgba(255,255,255,0.02);
+          background: rgba(255, 255, 255, 0.02);
           border: 1px solid var(--glass-border);
           color: var(--text-secondary);
           border-radius: var(--border-radius-md);
@@ -1314,33 +1513,38 @@ export default function Dashboard({ setView }) {
           cursor: pointer;
           transition: all 0.2s ease;
         }
+
         .riddle-opt-btn:hover {
           border-color: var(--accent-primary);
           background: rgba(0, 217, 255, 0.05);
         }
+
         .riddle-opt-btn.correct {
           background: rgba(57, 255, 20, 0.1) !important;
           border-color: var(--accent-lime) !important;
           color: var(--accent-lime);
         }
+
         .riddle-opt-btn.incorrect {
           background: rgba(255, 0, 110, 0.1) !important;
           border-color: var(--accent-pink) !important;
           color: var(--accent-pink);
         }
+
         .riddle-feedback {
           font-size: 0.85rem;
           font-weight: 700;
           text-transform: uppercase;
         }
+
         .riddle-feedback.correct { color: var(--accent-lime); }
         .riddle-feedback.incorrect { color: var(--accent-pink); }
 
-        /* Glitch Shake visual class */
         .glitch-shake {
           animation: glitchShake 0.15s ease infinite;
           filter: hue-rotate(90deg) invert(1) contrast(1.5);
         }
+
         @keyframes glitchShake {
           0%, 100% { transform: translate(0, 0); }
           25% { transform: translate(-3px, 2px); }

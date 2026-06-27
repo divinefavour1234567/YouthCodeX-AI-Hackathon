@@ -38,7 +38,7 @@ export default function App() {
     switch (currentView) {
       case "dashboard":
         return <Dashboard setView={setView} />;
-      case "roadmap":
+      case "advisor":
         return <Roadmap />;
       case "interview":
         return <Interview />;

@@ -481,20 +481,19 @@ export const generateAdvisorRoadmap = async (apiKey, userProfile, history = []) 
       },
       target_roles: [
         {
-          title: `Junior ${userProfile.targetRoles || "Software Engineer"}`,
-          companies_in_nigeria: ["Paystack", "Flutterwave", "Moniepoint", "Kuda Bank"],
-          salary_range_ngn: "₦350,000 - ₦600,000 / month",
-          key_requirements": ["JavaScript/Python", "Git", "API Integrations", "Figma"],
-          years_to_reach: "3 months"
+            title: `Junior ${userProfile.targetRoles || "Software Engineer"}`,
+            companies_in_nigeria: ["Paystack", "Flutterwave", "Moniepoint", "Kuda Bank"],
+            salary_range_ngn: "₦350,000 - ₦600,000 / month",
+            key_requirements: ["JavaScript/Python", "Git", "API Integrations", "Figma"],
+            years_to_reach: "3 months"
         }
-      ],
-      skill_priorities: ["Foundational Code Logic", "Git Version Control", "REST APIs", "Clean UI Frameworks"],
-      salary_expectations: {
+    ],
+    skill_priorities: ["Foundational Code Logic", "Git Version Control", "REST APIs"],
+    salary_expectations: {
         entry_level: "₦4.2M - ₦7.2M / year",
-        mid_level: "₦8.4M - ₦15M / year",
         senior_level: "₦18M - ₦30M / year"
-      }
-    };
+    }
+};
   }
 
   try {

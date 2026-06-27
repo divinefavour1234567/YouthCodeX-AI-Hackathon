@@ -24,5 +24,5 @@ React + Vite • Google Gemini 1.5 Flash • HTML5 Canvas + WebGL • Web Speech
 
 
 Built For:
-This project demonstrates how AI can solve real problems in education and youth employment by making career readiness more accessible, engaging, and effective for young people — starting with Nigeria.
+This project demonstrates how AI can solve real problems in education and youth employment by making career readiness more accessible, engaging, and effective for young people starting with Nigeria.
 Live Demo: https://youth-code-x-ai-hackathon.vercel.app
